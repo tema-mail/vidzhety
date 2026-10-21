@@ -3,3 +3,4 @@ dist/
 demo/vidzhety.js
 demo/vidzhety.css
 .DS_Store
+demo/vidzhety-zhurnal.js
