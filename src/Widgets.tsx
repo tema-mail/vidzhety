@@ -168,7 +168,7 @@ export default function Widgets({ src = '/widgets.json', config }: { src?: strin
     <div class={'w-root' + (phone ? ' is-phone' : '')}>
       {Object.entries(st).map(([id, as]) => {
         const w = cfg.widgets.find((x) => x.id === id)!;
-        return as === 'bar' ? <Bar key={id} w={w} /> : as === 'contacts' ? <Contacts key={id} w={w} phone={phone} /> : <Tab key={id} w={w} phone={phone} />;
+        return as === 'bar' ? <Bar key={id} w={w} phone={phone} /> : as === 'contacts' ? <Contacts key={id} w={w} phone={phone} /> : <Tab key={id} w={w} phone={phone} />;
       })}
       {dlg && D && <D.f key={dlg.id} w={dlg} cfg={cfg} phone={phone} api={api} />}
     </div>
@@ -189,12 +189,14 @@ function Tab({ w, phone }: { w: Widget; phone: boolean }) {
   );
 }
 
-function Bar({ w }: { w: Widget }) {
+function Bar({ w, phone }: { w: Widget; phone: boolean }) {
   const k = w.content || {};
   const to = w.target?.dateTo;
+  const text = <>{(phone && k.short) || k.text || E.name(w)}{to && <b> до {E.dateText(to)}</b>}</>;
   return (
     <div class="w-bar" role="region" aria-label={E.name(w)} style={{ zIndex: E.LAYER.bar }}>
-      <p>{k.text || E.name(w)}{to && <b> до {E.dateText(to)}</b>}{k.link && <> · <a href={k.link.href}>{k.link.text}</a></>}</p>
+      {/* на телефоне в одну строку: условие целиком становится ссылкой на правила */}
+      <p>{k.link && phone ? <a href={k.link.href}>{text}</a> : <>{text}{k.link && <> · <a href={k.link.href}>{k.link.text}</a></>}</>}</p>
       {E.isOverlay(w.type) && <button type="button" class="w-bar__b" onClick={() => api.open(w)}>{k.button || 'Открыть'}</button>}
       <X w={w} />
     </div>
