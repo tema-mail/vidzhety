@@ -5,7 +5,7 @@ export type On = 'click' | 'load' | 'time' | 'scroll' | 'block' | 'exit' | 'page
 
 /** Типы, которые модуль умеет. Колеса, «кто-то купил», «сейчас смотрят N» нет и не будет – это решение. */
 export const TYPES = ['tab', 'bar', 'sheet', 'modal', 'quiz', 'callback', 'contacts'];
-/** Перекрывающие страницу – для них «одно окно за визит» и защита SEO на телефоне. */
+/** Перекрывающие страницу – для них «не больше двух окон за визит» и защита SEO на телефоне. */
 export const OVERLAYS = ['sheet', 'modal', 'quiz', 'callback'];
 const ONS: On[] = ['click', 'load', 'time', 'scroll', 'block', 'exit', 'pages'];
 
@@ -50,7 +50,9 @@ export interface Ctx {
 /** Память: по виджету (n – показов, a – было действие, c – когда закрыли, s – подпись текста) и по визиту. */
 export interface Mem {
   leadAt?: number;
-  ov?: string;
+  /** Окна, которые сами показались в этом визите, по порядку; ovg – группа первого. */
+  ov?: string[];
+  ovg?: string;
   w: Record<string, { n?: number; a?: number; c?: number; s?: string }>;
   sess: Record<string, number>;
 }
@@ -61,6 +63,8 @@ const no = (code: string, ...p: unknown[]): No => ({ code, p });
 
 const DAY = 864e5;
 export const QUIET_SEC = 10;
+/** Окон за визит: первое – любое, второе – только на уходе. */
+export const MAX_OV = 2;
 export const LEAD_DAYS = 90;
 export const CONTROL_SHARE = 0.1;
 export const CONTROL_DAYS = 30;
@@ -144,7 +148,12 @@ export function allow(w: Widget, c: Ctx, m: Mem): No {
   if (s.c && s.s === sig(w) && c.now - s.c < pause * DAY) return no('paused', pause);
   const max = f.maxShows ?? (ov || w.type === 'tab' ? 3 : 0);
   if (max && !s.a && (s.n || 0) >= max) return no('max', s.n, max);
-  if (ov && m.ov) return no(m.ov === w.id ? 'ovself' : 'ov');
+  const ovs = m.ov || [];
+  if (ov && ovs.includes(w.id)) return no('ovself');
+  if (ov && ovs.length >= MAX_OV) return no('ov', MAX_OV);
+  // Второе окно визита – только на уходе; и не той же группы, если после первого уже оставили заявку.
+  if (ov && ovs.length && on(w) !== 'exit') return no('ov2');
+  if (ov && ovs.length && m.leadAt && m.leadAt >= c.visitStart && (w.group || 'lead') === m.ovg) return no('ov2lead', m.ovg);
   const per = f.perSession ?? (ov ? 1 : 0);
   if (per && (m.sess[w.id] || 0) >= per) return no('per', per);
   // Сразу при входе можно только постоянное и неперекрывающее: плашка-условие и «Позвонить / Написать». Остальное – после 10 с.

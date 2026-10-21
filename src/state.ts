@@ -101,7 +101,9 @@ export function init(cfg: Config): Ctx {
   }
   mem.leadAt = get(ls, 'lead', 0);
   mem.w = get(ls, 'mem', {});
-  mem.ov = get(ss, 'ov', '');
+  const ov = get<string[] | string>(ss, 'ov', []);
+  mem.ov = Array.isArray(ov) ? ov : ov ? [ov] : [];
+  mem.ovg = get(ss, 'ovg', '');
   mem.sess = get(ss, 'sess', {});
 
   const device = dq('device');
@@ -127,11 +129,16 @@ function host(u: string) {
 const saveW = () => put(ls, 'mem', mem.w);
 const one = (w: Widget) => (mem.w[w.id] ||= {});
 
-/** Показан сам: счётчик визита, счётчик показов (один раз за визит), окно визита. */
+/** Показан сам: счётчик визита, счётчик показов (один раз за визит), окна визита и группа первого. */
 export function shown(w: Widget, as: string) {
   if (!mem.sess[w.id]) one(w).n = (one(w).n || 0) + 1;
   mem.sess[w.id] = (mem.sess[w.id] || 0) + 1;
-  if (isOverlay(as)) put(ss, 'ov', (mem.ov = w.id));
+  if (isOverlay(as)) {
+    const ov = (mem.ov ||= []);
+    if (!ov.length) put(ss, 'ovg', (mem.ovg = w.group || 'lead'));
+    ov.push(w.id);
+    put(ss, 'ov', ov);
+  }
   put(ss, 'sess', mem.sess);
   saveW();
 }

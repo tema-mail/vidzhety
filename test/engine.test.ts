@@ -45,12 +45,26 @@ test('перекрывающее окно не может появиться с�
   assert.equal(validate(w({ type: 'bar', trigger: { on: 'load' } })), null);
 });
 
-test('одно перекрывающее окно за сессию', () => {
+test('окна за визит: не больше двух, второе – только на уходе', () => {
+  const exit = (o: Partial<Widget> = {}) => w({ id: 'y', trigger: { on: 'exit' }, ...o });
   assert.equal(allow(w(), ctx(), mem()), null);
-  assert.equal(allow(w({ id: 'y' }), ctx(), mem({ ov: 'x' }))?.code, 'ov');
-  assert.equal(allow(w(), ctx(), mem({ ov: 'x' }))?.code, 'ovself');
+  // после окна по времени второе по времени – нельзя, на уходе – можно
+  assert.equal(allow(w({ id: 'y' }), ctx(), mem({ ov: ['x'] }))?.code, 'ov2');
+  assert.equal(allow(exit(), ctx(), mem({ ov: ['x'], ovg: 'lead' })), null);
+  // третьего нет, даже на уходе; одно и то же окно – не дважды
+  assert.deepEqual(allow(exit({ id: 'z' }), ctx(), mem({ ov: ['x', 'y'] })), { code: 'ov', p: [2] });
+  assert.equal(allow(w(), ctx(), mem({ ov: ['x'] }))?.code, 'ovself');
   // ярлычок и плашка – не окна, правило их не касается
-  assert.equal(allow(w({ id: 'y', type: 'tab' }), ctx(), mem({ ov: 'x' })), null);
+  assert.equal(allow(w({ id: 'y', type: 'tab' }), ctx(), mem({ ov: ['x', 'z'] })), null);
+});
+
+test('второе окно не той же группы, если по первому уже оставили заявку', () => {
+  const exit = (group: string) => w({ id: 'y', group, trigger: { on: 'exit' } });
+  const after = mem({ ov: ['x'], ovg: 'promo', leadAt: T - 5e3 });
+  assert.deepEqual(allow(exit('promo'), ctx(), after), { code: 'ov2lead', p: ['promo'] });
+  assert.equal(allow(exit('podarok'), ctx(), after), null);
+  // заявка была в прошлом визите (до начала этого) – правило визита её не считает
+  assert.equal(allow(exit('promo'), ctx(), mem({ ov: ['x'], ovg: 'promo', leadAt: T - 120e3 })), null);
 });
 
 test('первые 10 с – только click', () => {
