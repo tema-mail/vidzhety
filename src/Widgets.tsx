@@ -6,6 +6,7 @@ import * as E from './engine.ts';
 import * as S from './state.ts';
 import type { Widget } from './engine.ts';
 import type { Config } from './state.ts';
+import Contacts from './Contacts.tsx';
 
 interface Ui { show(id: string, as: string): void; hide(id: string): void; open(w: Widget | null): void; phone(v: boolean): void }
 export interface Api { open(w: Widget): void; close(w: Widget, how: string): void; lead(w: Widget): void; contact(ch: string): void }
@@ -166,13 +167,13 @@ export default function Widgets({ src = '/widgets.json', config }: { src?: strin
     open: setDlg,
     phone: setPhone,
   }), [cfg]);
-  useEffect(() => { document.body.classList.toggle('w-has-sticky', phone && Object.values(st).includes('contacts')); }, [st, phone]);
+  useEffect(() => { document.body.classList.toggle('vz-has-sticky', phone && Object.values(st).includes('contacts')); }, [st, phone]);
   if (!cfg) return null;
   return (
-    <div class={'w-root' + (phone ? ' is-phone' : '')}>
+    <div class={'vz-root' + (phone ? ' is-phone' : '')}>
       {Object.entries(st).map(([id, as]) => {
         const w = cfg.widgets.find((x) => x.id === id)!;
-        return as === 'bar' ? <Bar key={id} w={w} phone={phone} /> : as === 'contacts' ? <Contacts key={id} w={w} phone={phone} /> : <Tab key={id} w={w} phone={phone} />;
+        return as === 'bar' ? <Bar key={id} w={w} phone={phone} /> : as === 'contacts' ? <Contacts key={id} w={w} phone={phone} api={api} /> : <Tab key={id} w={w} phone={phone} />;
       })}
       {dlg && D && <D.f key={dlg.id} w={dlg} cfg={cfg} phone={phone} api={api} auto={autoOpened} />}
     </div>
@@ -180,14 +181,14 @@ export default function Widgets({ src = '/widgets.json', config }: { src?: strin
 }
 
 const X = ({ w, how = 'x' }: { w: Widget; how?: string }) => (
-  <button type="button" class="w-x" aria-label="Закрыть" onClick={() => api.close(w, how)}>×</button>
+  <button type="button" class="vz-x" aria-label="Закрыть" onClick={() => api.close(w, how)}>×</button>
 );
 
 function Tab({ w, phone }: { w: Widget; phone: boolean }) {
   const k = w.content || {};
   return (
-    <div class="w-tab" style={{ zIndex: E.LAYER.tab }}>
-      <button type="button" class="w-tab__b" onClick={() => api.open(w)}>{(phone && k.short) || k.label || E.name(w)}</button>
+    <div class="vz-tab" style={{ zIndex: E.LAYER.tab }}>
+      <button type="button" class="vz-tab__b" onClick={() => api.open(w)}>{(phone && k.short) || k.label || E.name(w)}</button>
       <X w={w} />
     </div>
   );
@@ -198,43 +199,11 @@ function Bar({ w, phone }: { w: Widget; phone: boolean }) {
   const to = w.target?.dateTo;
   const text = <>{(phone && k.short) || k.text || E.name(w)}{to && <b> до {E.dateText(to)}</b>}</>;
   return (
-    <div class="w-bar" role="region" aria-label={E.name(w)} style={{ zIndex: E.LAYER.bar }}>
+    <div class="vz-bar" role="region" aria-label={E.name(w)} style={{ zIndex: E.LAYER.bar }}>
       {/* на телефоне в одну строку: условие целиком становится ссылкой на правила */}
       <p>{k.link && phone ? <a href={k.link.href}>{text}</a> : <>{text}{k.link && <> · <a href={k.link.href}>{k.link.text}</a></>}</>}</p>
-      {E.isOverlay(w.type) && <button type="button" class="w-bar__b" onClick={() => api.open(w)}>{k.button || 'Открыть'}</button>}
+      {E.isOverlay(w.type) && <button type="button" class="vz-bar__b" onClick={() => api.open(w)}>{k.button || 'Открыть'}</button>}
       <X w={w} />
-    </div>
-  );
-}
-
-function Contacts({ w, phone }: { w: Widget; phone: boolean }) {
-  const k = w.content || {};
-  const [open, setOpen] = useState(false);
-  const a = (ch: string, href = '', text: string, cls = '') => (
-    <a class={cls} href={href} target={href.startsWith('http') ? '_blank' : undefined} rel="noopener" onClick={() => api.contact(ch)}>{text}</a>
-  );
-  if (phone) {
-    return (
-      <nav class="w-sticky" aria-label="Связаться" style={{ zIndex: E.LAYER.sticky }}>
-        {k.phone && a('phone', 'tel:' + k.phone, 'Позвонить', 'w-btn')}
-        {(k.write || k.tg) && a('telegram', k.write || k.tg, 'Написать', 'w-btn w-btn--alt')}
-      </nav>
-    );
-  }
-  return (
-    <div class="w-multi" style={{ zIndex: E.LAYER.sticky }}>
-      {open && (
-        <div class="w-multi__list">
-          {k.tg && a('telegram', k.tg, 'Telegram')}
-          {k.max && a('max', k.max, 'MAX')}
-          {k.wa && a('whatsapp', k.wa, 'WhatsApp')}
-          {a('phone', 'tel:' + k.phone, k.phoneText || k.phone)}
-          {k.callback && <button type="button" data-w-open={k.callback}>Перезвоните мне</button>}
-        </div>
-      )}
-      <button type="button" class="w-multi__b" aria-expanded={open} aria-label="Связаться с нами" onClick={() => { setOpen(!open); !open && S.acted(w); }}>
-        {open ? '×' : <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z" /></svg>}
-      </button>
     </div>
   );
 }

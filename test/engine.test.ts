@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { reason, RULES } from '../src/zhurnal.ts';
 import {
-  allow, CONTROL_SHARE, dateText, inControl, LAYER, match, pick, sig, term, validate, view, waitMs,
+  allow, buttons, CONTROL_SHARE, side, dateText, inControl, LAYER, match, pick, sig, term, validate, view, waitMs,
   type Ctx, type Mem, type Widget,
 } from '../src/engine.ts';
 
@@ -161,4 +161,22 @@ test('сразу при входе (load) – только плашка и «П�
   const early = ctx({ visitStart: T - 2e3 });
   for (const type of ['bar', 'contacts']) assert.equal(allow(w({ id: type, type, trigger: { on: 'load' } }), early, mem()), null, type);
   for (const type of ['tab', 'modal', 'sheet']) assert.equal(allow(w({ id: type, type, trigger: { on: 'load' } }), early, mem())?.code, 'early', type);
+});
+
+test('нижняя панель телефона: кнопки только из настроек, без tel:undefined', () => {
+  // без настроек и без телефона – ни одной пустой кнопки
+  assert.deepEqual(buttons({}), []);
+  assert.deepEqual(buttons({ phone: '+79134584567' }).map((b) => b.href), ['tel:+79134584567']);
+  const b = buttons({ buttons: [
+    { text: 'Купить', scroll: '#v-korzinu', kind: 'main' }, { text: 'Позвонить', href: 'tel:+79134584567' },
+    { text: 'Записаться', open: 'zayavka' }, { text: 'Пусто' }, { href: 'tel:+7' },
+  ] });
+  assert.deepEqual(b.map((x) => x.text), ['Купить', 'Позвонить', 'Записаться']);
+  assert.ok(!JSON.stringify(b).includes('undefined'));
+});
+
+test('боковая панель компьютера: только каналы из настроек', () => {
+  assert.deepEqual(side({ wa: 'https://wa.me/79134584567', email: 'a@b.ru' }).map((x) => x[0]), ['whatsapp', 'mail']);
+  assert.deepEqual(side({ phone: '+79134584567', phoneText: '8 (913) 458-45-67' })[0], ['phone', 'tel:+79134584567', '8 (913) 458-45-67']);
+  assert.deepEqual(side({}), []);
 });

@@ -40,10 +40,10 @@ export default function Dialog({ w, cfg, phone, api, auto = false }: P & { phone
   }, []);
   const side = phone ? 'sheet' : ['tab', 'sheet'].includes(w.type) ? 'side' : 'center';
   return (
-    <div class={`w-dlg w-dlg--${side}${auto ? ' is-auto' : ''}`} style={{ zIndex: E.LAYER.overlay }}>
-      <div class="w-dlg__bg" onClick={() => close('bg')} />
-      <div class="w-dlg__p" ref={ref} role="dialog" aria-modal="true" aria-labelledby={'w-t-' + w.id}>
-        <button type="button" class="w-x" aria-label="Закрыть" onClick={() => close('x')}>×</button>
+    <div class={`vz-dlg vz-dlg--${side}${auto ? ' is-auto' : ''}`} style={{ zIndex: E.LAYER.overlay }}>
+      <div class="vz-dlg__bg" onClick={() => close('bg')} />
+      <div class="vz-dlg__p" ref={ref} role="dialog" aria-modal="true" aria-labelledby={'w-t-' + w.id}>
+        <button type="button" class="vz-x" aria-label="Закрыть" onClick={() => close('x')}>×</button>
         <Body w={w} cfg={cfg} api={api} />
       </div>
     </div>
@@ -60,16 +60,16 @@ function Body({ w, cfg, api }: P) {
   const [done, setDone] = useState(false);
   // Сменился шаг – фокус на заголовок, чтобы клавиатура не выпала из окна на страницу.
   useEffect(() => { document.getElementById('w-t-' + w.id)?.focus(); }, [step, done]);
-  const h = (t: ComponentChildren) => <h2 class="w-h" id={'w-t-' + w.id} tabIndex={-1}>{t}</h2>;
-  if (done) return <>{h(k.done || 'Заявка принята')}<p>{k.doneText || E.term(w, Date.now(), cfg.tz ?? 3)}</p>{cfg.endpoint === 'demo:' && <p class="w-demo">демо: заявка никуда не ушла</p>}</>;
-  const back = (to: number) => <button type="button" class="w-back" onClick={() => setStep(to)}>← Назад</button>;
+  const h = (t: ComponentChildren) => <h2 class="vz-h" id={'w-t-' + w.id} tabIndex={-1}>{t}</h2>;
+  if (done) return <>{h(k.done || 'Заявка принята')}<p>{k.doneText || E.term(w, Date.now(), cfg.tz ?? 3)}</p>{cfg.endpoint === 'demo:' && <p class="vz-demo">демо: заявка никуда не ушла</p>}</>;
+  const back = (to: number) => <button type="button" class="vz-back" onClick={() => setStep(to)}>← Назад</button>;
   if (qz && step < qz.length) {
     const s = qz[step];
     return (
       <>
-        <p class="w-step">Шаг {step + 1} из {qz.length + 1}</p>
+        <p class="vz-step">Шаг {step + 1} из {qz.length + 1}</p>
         {h(s.q)}
-        <div class="w-opts">
+        <div class="vz-opts">
           {s.options.map((o) => (
             <button type="button" class={ans[step] === o.t ? 'is-on' : ''} onClick={() => { const a = [...ans]; a[step] = o.t; setAns(a); setStep(step + 1); }}>{o.t}</button>
           ))}
@@ -83,7 +83,7 @@ function Body({ w, cfg, api }: P) {
   return (
     <>
       {h(qz ? k.resultTitle || 'Ваш ориентир' : k.title || E.name(w))}
-      {res && <p class="w-res">{res}</p>}
+      {res && <p class="vz-res">{res}</p>}
       {w.type === 'callback' ? <p>{E.term(w, Date.now(), cfg.tz ?? 3)}</p> : k.text && <p>{k.text}</p>}
       <Form w={w} cfg={cfg} api={api} extra={extra} done={() => setDone(true)} />
       {qz && back(qz.length - 1)}
@@ -133,12 +133,12 @@ function Form({ w, cfg, api, extra, done }: P & { extra: Record<string, string>;
     done();
   };
   const box = (on: boolean, set: (b: boolean) => void, text: ComponentChildren) => (
-    <label class="w-chk"><input type="checkbox" checked={on} onChange={(e) => set((e.target as HTMLInputElement).checked)} /><span>{text}</span></label>
+    <label class="vz-chk"><input type="checkbox" checked={on} onChange={(e) => set((e.target as HTMLInputElement).checked)} /><span>{text}</span></label>
   );
   return (
-    <form class="w-form" onSubmit={submit} noValidate>
+    <form class="vz-form" onSubmit={submit} noValidate>
       {fields.map((k) => (
-        <label class="w-f" key={k}>
+        <label class="vz-f" key={k}>
           <span>{LABEL[k][0]}</span>
           <input type={LABEL[k][1]} autoComplete={LABEL[k][2]} inputMode={k === 'phone' ? 'tel' : undefined} placeholder={k === 'phone' ? '+7 (___) ___-__-__' : ''}
             value={v[k] || ''} onInput={(e) => { const t = (e.target as HTMLInputElement).value; setV({ ...v, [k]: k === 'phone' ? mask(t) : t }); setErr(''); }} />
@@ -146,9 +146,9 @@ function Form({ w, cfg, api, extra, done }: P & { extra: Record<string, string>;
       ))}
       {box(agree, setAgree, <>Даю <a href={cfg.agreement || '/soglasie'} target="_blank">согласие на обработку персональных данных</a></>)}
       {f.marketing && box(mk, setMk, <>Согласен(на) получать рекламные письма (<a href={cfg.marketingDoc || '/soglasie-rassylka'} target="_blank">согласие на рассылку</a>)</>)}
-      {err && <p class="w-err" role="alert">{err}</p>}
-      <button class="w-btn" type="submit" disabled={busy || !agree}>{busy ? 'Отправляем…' : f.button || 'Отправить'}</button>
-      {cfg.endpoint === 'demo:' && <p class="w-demo">демо, заявка никуда не уходит</p>}
+      {err && <p class="vz-err" role="alert">{err}</p>}
+      <button class="vz-btn" type="submit" disabled={busy || !agree}>{busy ? 'Отправляем…' : f.button || 'Отправить'}</button>
+      {cfg.endpoint === 'demo:' && <p class="vz-demo">демо, заявка никуда не уходит</p>}
     </form>
   );
 }

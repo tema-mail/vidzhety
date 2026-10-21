@@ -7,7 +7,8 @@ import { build } from 'esbuild';
 import { gzipSync } from 'node:zlib';
 import { copyFileSync, readFileSync } from 'node:fs';
 
-const BUDGET_KB = 6;
+// 21.10.2026: 6 → 7 КБ – боковая панель связи и кнопки нижней панели из настроек (+0,7 КБ), по заданию владельца «может чуть вырасти».
+const BUDGET_KB = 7;
 const base = { bundle: true, minify: true, target: 'es2020', jsx: 'automatic', jsxImportSource: 'preact', legalComments: 'none', charset: 'utf8' };
 const iife = (contents, outfile) => build({ ...base, format: 'iife', outfile, stdin: { contents, resolveDir: '.', loader: 'ts' } });
 

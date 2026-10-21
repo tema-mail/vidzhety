@@ -184,3 +184,25 @@ export function term(w: Widget, now: number, tz: number): string {
 const MONTHS = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
 /** «2026-11-30» → «30 ноября» – срок акции словами, из настроек, а не от первого визита. */
 export const dateText = (d: string) => `${+d.slice(8, 10)} ${MONTHS[+d.slice(5, 7) - 1]}`;
+
+/** Кнопка нижней панели телефона: ссылка, открыть виджет по id или прокрутить к якорю. kind main – главная кнопка страницы. */
+export interface Btn { text?: string; href?: string; open?: string; scroll?: string; kind?: 'main' | 'alt' }
+/** Кнопки нижней панели: из content.buttons, без настроек – «Позвонить / Написать». Без текста или цели кнопка не рисуется. */
+export function buttons(k: Record<string, any>): Btn[] {
+  const b: Btn[] = k.buttons || [
+    { text: 'Позвонить', href: k.phone && 'tel:' + k.phone, kind: 'main' },
+    { text: 'Написать', href: k.write || k.tg, kind: 'alt' },
+  ];
+  return b.filter((x) => x && x.text && (x.href || x.open || x.scroll));
+}
+/** Боковая панель компьютера (layout:"side"): [канал, ссылка, подпись] – только то, что есть в настройках. */
+export function side(k: Record<string, any>): [string, string, string][] {
+  const all: [string, string | false, string][] = [
+    ['phone', !!k.phone && 'tel:' + k.phone, k.phoneText || k.phone],
+    ['whatsapp', k.wa, 'WhatsApp'],
+    ['telegram', k.tg, 'Telegram'],
+    ['max', k.max, 'MAX'],
+    ['mail', !!k.email && 'mailto:' + k.email, k.email],
+  ];
+  return all.filter((x): x is [string, string, string] => !!x[1]);
+}
