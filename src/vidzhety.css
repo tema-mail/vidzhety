@@ -26,6 +26,7 @@
 .vz-bar .vz-x { top: 50%; transform: translateY(-50%); color: #fff; }
 .vz-bar__b { border: 1px solid #fff; border-radius: 8px; background: none; color: #fff; padding: 6px 12px; cursor: pointer; }
 .is-phone .vz-bar { font-size: 13px; padding-left: 12px; }
+.vz-bar ~ .vz-bar { top: 44px; } /* вторая плашка (окно, ставшее плашкой на телефоне) – под первой, не поверх */
 
 /* Липкая панель телефона: главная кнопка страницы шире, вторая – контуром. */
 .vz-sticky { position: fixed; left: 0; right: 0; bottom: 0; display: flex; gap: 8px;

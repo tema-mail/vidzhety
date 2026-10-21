@@ -4,7 +4,7 @@ import { CONTROL_DAYS, inControl, isOverlay, name, sig, type Ctx, type Mem, type
 
 export interface Config {
   widgets: Widget[];
-  /** Демо: принимает w-device, w-ref, w-ctrl из адреса и пишет журнал решений (событие w-log). */
+  /** Демо: принимает w-device, w-ref, w-ctrl из адреса, пишет журнал решений (событие w-log), память – до закрытия вкладки. */
   demo?: boolean;
   /** Куда слать заявку; «demo:» – заглушка, отвечает «принято» через 0,5 с. */
   endpoint?: string;
@@ -64,8 +64,9 @@ export const noBanner = (cfg: Config) => cfg.consent === false;
 /** Собрать всё, что движок знает о визите. Вызывается один раз при запуске острова. */
 export function init(cfg: Config): Ctx {
   demo = !!cfg.demo;
-  ls = probe('localStorage');
   ss = probe('sessionStorage');
+  // Демо и прототипы: память – до закрытия вкладки, чтобы показ можно было повторить в новой вкладке.
+  ls = demo ? ss : probe('localStorage');
   const now = Date.now();
   const q = new URLSearchParams(location.search);
   const dq = (k: string) => (demo ? q.get('w-' + k) : null);

@@ -41,3 +41,16 @@ test('Метрика без счётчика (consent:false даёт 0) – со
   S.metrika(0, false);
   assert.equal(S.ym('reachGoal', 'lead'), -1);
 });
+
+test('демо: память – до закрытия вкладки (в localStorage виджеты ничего не пишут)', () => {
+  browser();
+  S.init({ widgets: [], demo: true, consent: false });
+  S.shown({ id: 'x', type: 'modal' }, 'modal');
+  assert.equal(g.localStorage.length, 0);
+  assert.ok(g.sessionStorage.getItem('w_mem'));
+  // на сайте – как раньше: показы помнятся между визитами
+  browser();
+  S.init({ widgets: [], consent: false });
+  S.shown({ id: 'x', type: 'modal' }, 'modal');
+  assert.ok(g.localStorage.getItem('w_mem'));
+});

@@ -39,10 +39,12 @@ export default function Dialog({ w, cfg, phone, api, auto = false }: P & { phone
     };
   }, []);
   const side = phone ? 'sheet' : ['tab', 'sheet'].includes(w.type) ? 'side' : 'center';
+  // Самопоявившаяся шторка – не выше 30% экрана; человек коснулся её – раскрывается под форму.
+  const [low, setLow] = useState(auto);
   return (
-    <div class={`vz-dlg vz-dlg--${side}${auto ? ' is-auto' : ''}`} style={{ zIndex: E.LAYER.overlay }}>
+    <div class={`vz-dlg vz-dlg--${side}${low ? ' is-auto' : ''}`} style={{ zIndex: E.LAYER.overlay }}>
       <div class="vz-dlg__bg" onClick={() => close('bg')} />
-      <div class="vz-dlg__p" ref={ref} role="dialog" aria-modal="true" aria-labelledby={'w-t-' + w.id}>
+      <div class="vz-dlg__p" onPointerDown={() => setLow(false)} ref={ref} role="dialog" aria-modal="true" aria-labelledby={'w-t-' + w.id}>
         <button type="button" class="vz-x" aria-label="Закрыть" onClick={() => close('x')}>×</button>
         <Body w={w} cfg={cfg} api={api} />
       </div>

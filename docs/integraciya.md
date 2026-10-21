@@ -142,3 +142,16 @@ location.href = thanksUrl();
 
 ## Важно: `"demo": true` – только для демо
 В боевом widgets.json поля `demo` быть не должно: в режиме демо выключается случайная контрольная группа и устройство/вход можно подменить параметрами адреса. Поле `endpoint: "demo:"` – заглушка «заявка принята», на бою – адрес приёмника сайта.
+
+## Страница без Astro (прототип, статичный HTML)
+
+```html
+<link rel="stylesheet" href="https://tema-mail.github.io/vidzhety/vidzhety.css">
+…
+<div data-vidzhety data-src="vidzhety-glavnaya.json"></div>
+<script src="https://tema-mail.github.io/vidzhety/vidzhety.js"></script>   <!-- перед </body> -->
+```
+
+Конфиг – файлом рядом со страницей. Для прототипа: `"demo": true` (без случайной контрольной группы, память до закрытия
+вкладки, `?w-device=phone`, `?w-ref=search` в адресе), `"consent": false` (окна cookie нет), `"endpoint": "demo:"` (заявки никуда не уходят).
+Классы модуля – с префиксом `vz-`, с классами комплекта прототипа (`w-*`) не пересекаются.
