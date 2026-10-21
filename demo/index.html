@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Демо модуля виджетов – газовое оборудование и монтаж</title>
+  <meta name="description" content="Демо модуля виджетов для сайтов на Astro + Preact: ярлычок, плашка-условие, обратный звонок, окно на уходе, липкая панель. Пример, не настоящий магазин." />
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="stylesheet" href="vidzhety.css" />
+  <style>
+    :root { --w-accent: #1e294e; --w-accent-2: #e4572e; --ink: #1b1f2a; --muted: #5b6375; --line: #e3e6ee; --bg: #f6f7fa; }
+    * { box-sizing: border-box; }
+    body { margin: 0; font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color: var(--ink); background: #fff; }
+    a { color: var(--w-accent); }
+    .wrap { max-width: 1160px; margin: 0 auto; padding: 0 16px; }
+    .demo-flag { display: inline-block; padding: 3px 10px; border-radius: 999px; background: #fff3cd; color: #7a5a00; font-size: 13px; font-weight: 600; }
+    header { border-bottom: 1px solid var(--line); background: #fff; padding-top: 44px; }
+    .head { display: flex; align-items: center; gap: 16px; min-height: 68px; flex-wrap: wrap; }
+    .logo { font-weight: 800; font-size: 20px; color: var(--w-accent); text-decoration: none; }
+    .head nav { display: flex; gap: 18px; margin-left: auto; }
+    .head nav a { color: var(--ink); text-decoration: none; }
+    .tel { font-weight: 700; color: var(--ink); text-decoration: none; }
+    .btn { display: inline-flex; align-items: center; justify-content: center; min-height: 46px; padding: 0 18px; border: 0; border-radius: 10px;
+      background: var(--w-accent); color: #fff; font-family: inherit; font-weight: 600; font-size: 15px; line-height: 1; cursor: pointer; text-decoration: none; }
+    .btn--o { background: var(--w-accent-2); }
+    .btn--ghost { background: #fff; color: var(--w-accent); border: 1px solid var(--w-accent); }
+    .hero { padding: 40px 0 32px; background: linear-gradient(180deg, #eef1f8, #fff); }
+    .hero h1 { margin: 10px 0 12px; font-size: clamp(28px, 4vw, 44px); line-height: 1.15; }
+    .hero p { max-width: 640px; color: var(--muted); margin: 0 0 20px; }
+    .hero .acts { display: flex; gap: 10px; flex-wrap: wrap; }
+    section { padding: 36px 0; }
+    h2 { font-size: 26px; margin: 0 0 16px; }
+    .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+    @media (min-width: 1024px) { .grid { grid-template-columns: repeat(4, 1fr); } }
+    .card { border: 1px solid var(--line); border-radius: 12px; padding: 14px; background: #fff; }
+    .ph { aspect-ratio: 4 / 3; border-radius: 8px; background: repeating-linear-gradient(45deg, #eef0f5 0 10px, #f6f7fa 10px 20px); display: grid; place-items: center; color: var(--muted); font-size: 13px; }
+    .card h3 { font-size: 15px; margin: 10px 0 6px; }
+    .card b { display: block; margin-bottom: 10px; }
+    .steps { display: grid; gap: 12px; grid-template-columns: 1fr; counter-reset: s; padding: 0; list-style: none; }
+    @media (min-width: 768px) { .steps { grid-template-columns: repeat(4, 1fr); } .head nav { display: flex; } }
+    @media (max-width: 767px) { .head nav { display: none; } }
+    .steps li { background: var(--bg); border-radius: 12px; padding: 16px; }
+    .steps li::before { counter-increment: s; content: counter(s); display: grid; place-items: center; width: 32px; height: 32px; margin-bottom: 8px; border-radius: 50%; background: var(--w-accent); color: #fff; font-weight: 700; }
+    footer { background: #141b33; color: #c9cfdf; padding: 28px 0 40px; font-size: 14px; }
+    footer a { color: #fff; }
+    /* Пульт демо – отдельный блок страницы, не часть модуля. */
+    .pult { margin: 20px 0 0; border: 2px dashed #b7bfd3; border-radius: 14px; padding: 16px; background: #fbfcfe; }
+    .pult h2 { font-size: 18px; margin: 0 0 4px; }
+    .pult p { margin: 0 0 12px; color: var(--muted); font-size: 14px; }
+    .pult__row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; }
+    .pult button, .pult a.pb { min-height: 40px; padding: 0 12px; border: 1px solid #c5cbe0; border-radius: 8px; background: #fff; color: var(--ink); font-family: inherit; font-size: 14px; line-height: 1; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; }
+    .pult button[aria-pressed="true"] { background: var(--w-accent); color: #fff; border-color: var(--w-accent); }
+    .pult__state { font-size: 13px; color: var(--muted); margin: 4px 0 10px; }
+    .journal { max-height: 300px; overflow: auto; margin: 0; padding: 10px 12px 10px 28px; background: #10162b; color: #dfe5f5; border-radius: 10px; font: 13px/1.5 ui-monospace, Menlo, monospace; }
+    .journal li { margin-bottom: 4px; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap head">
+      <a class="logo" href="./">ГазТепло</a>
+      <span class="demo-flag">Демо модуля виджетов</span>
+      <nav aria-label="Разделы"><a href="#katalog">Котлы</a><a href="#montazh">Монтаж</a><a href="#pravila">Акция</a></nav>
+      <a class="tel" href="tel:+70000000000">+7 000 000-00-00</a>
+      <button class="btn btn--o" type="button" data-w-open="callback">Перезвоните мне</button>
+    </div>
+  </header>
+
+  <main>
+    <div class="hero">
+      <div class="wrap">
+        <span class="demo-flag">Демо: пример страницы, не настоящий магазин</span>
+        <h1>Газовые котлы с монтажом под ключ</h1>
+        <p>Подберём котёл под площадь дома, привезём и смонтируем. Здесь показано, как работают виджеты модуля: что появляется, когда и почему – смотрите журнал решений в пульте ниже.</p>
+        <div class="acts">
+          <a class="btn" href="#katalog">Смотреть котлы</a>
+          <button class="btn btn--ghost" type="button" data-w-open="podbor">Подобрать котёл</button>
+        </div>
+
+        <div class="pult" aria-label="Пульт демо">
+          <h2>Пульт демо</h2>
+          <p>Отдельный блок для показа, не часть модуля. Кнопки меняют условия визита, журнал объясняет каждое решение модуля.</p>
+          <div class="pult__row">
+            <button type="button" data-p="device" data-v="phone">Я с телефона</button>
+            <button type="button" data-p="device" data-v="desktop">Я с компьютера</button>
+          </div>
+          <div class="pult__row">
+            <button type="button" data-p="ref" data-v="search">Пришёл с поиска</button>
+            <button type="button" data-p="ref" data-v="ad">Пришёл с рекламы utm_campaign=kotly</button>
+          </div>
+          <div class="pult__row">
+            <button type="button" data-a="consent-yes">Согласиться на cookie</button>
+            <button type="button" data-a="consent-min">Только необходимые cookie</button>
+            <button type="button" data-p="ctrl" data-v="1">Включить контрольную группу</button>
+            <button type="button" data-a="exit">Увести курсор к вкладкам</button>
+            <button type="button" data-a="reset">Сбросить память</button>
+            <a class="pb" data-a="thanks" href="spasibo.html">Страница «Спасибо»</a>
+          </div>
+          <p class="pult__state" data-state></p>
+          <ol class="journal" data-w-journal aria-live="polite"></ol>
+        </div>
+      </div>
+    </div>
+
+    <section id="katalog">
+      <div class="wrap">
+        <h2>Котлы (пример каталога, цены условные)</h2>
+        <div class="grid">
+          <article class="card"><div class="ph">фото котла</div><h3>Настенный котёл 24 кВт, двухконтурный</h3><b>от 45 000 ₽</b><button class="btn" type="button" data-w-open="callback">Узнать цену с монтажом</button></article>
+          <article class="card"><div class="ph">фото котла</div><h3>Настенный котёл 18 кВт, одноконтурный</h3><b>от 39 000 ₽</b><button class="btn" type="button" data-w-open="callback">Узнать цену с монтажом</button></article>
+          <article class="card"><div class="ph">фото котла</div><h3>Напольный котёл 32 кВт</h3><b>от 68 000 ₽</b><button class="btn" type="button" data-w-open="callback">Узнать цену с монтажом</button></article>
+          <article class="card"><div class="ph">фото котла</div><h3>Конденсационный котёл 24 кВт</h3><b>от 89 000 ₽</b><button class="btn" type="button" data-w-open="callback">Узнать цену с монтажом</button></article>
+        </div>
+      </div>
+    </section>
+
+    <section id="montazh" style="background:var(--bg)">
+      <div class="wrap">
+        <h2>Монтаж котла: как работаем</h2>
+        <ol class="steps">
+          <li>Выезд мастера и замер: площадь, дымоход, давление газа.</li>
+          <li>Подбор котла по теплопотерям, смета до начала работ.</li>
+          <li>Монтаж и обвязка, пусконаладка, проверка на утечки.</li>
+          <li>Документы для газовой службы и гарантия на работы.</li>
+        </ol>
+      </div>
+    </section>
+
+    <section id="pravila">
+      <div class="wrap">
+        <h2>Условия акции «Монтаж от 8 000 ₽»</h2>
+        <p>Пример текста правил: цена монтажа настенного котла от 8 000 ₽ при покупке котла у нас, до 30 ноября 2026 года. Срок акции один для всех и не сбрасывается – таймер в модуле есть только «до даты» из настроек.</p>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <p>ГазТепло – вымышленный магазин для демонстрации модуля виджетов. Телефон и мессенджеры – заглушки.</p>
+      <p><a id="soglasie" href="#soglasie">Согласие на обработку персональных данных</a> · <a id="soglasie-rassylka" href="#soglasie-rassylka">Согласие на рассылку</a> · <a href="#politika">Политика обработки данных</a></p>
+    </div>
+  </footer>
+
+  <div data-vidzhety data-src="vidzhety.json"></div>
+  <script src="vidzhety-zhurnal.js"></script>
+  <script src="pult.js"></script>
+  <script src="vidzhety.js"></script>
+</body>
+</html>
