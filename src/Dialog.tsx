@@ -30,7 +30,8 @@ export default function Dialog({ w, cfg, phone, api, auto = false }: P & { phone
     };
     addEventListener('popstate', pop);
     addEventListener('keydown', key);
-    ref.current?.querySelector<HTMLElement>(FOCUS)?.focus();
+    // Фокус – на заголовок окна (tabIndex=-1): экранный диктор читает окно, а рамки вокруг крестика нет.
+    (ref.current?.querySelector<HTMLElement>('.vz-h') || ref.current?.querySelector<HTMLElement>(FOCUS))?.focus();
     return () => {
       removeEventListener('popstate', pop);
       removeEventListener('keydown', key);
