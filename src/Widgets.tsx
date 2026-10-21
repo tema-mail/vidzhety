@@ -11,6 +11,8 @@ interface Ui { show(id: string, as: string): void; hide(id: string): void; open(
 export interface Api { open(w: Widget): void; close(w: Widget, how: string): void; lead(w: Widget): void; contact(ch: string): void }
 let api: Api;
 type DialogFn = typeof import('./Dialog.tsx').default;
+/** Окно открылось само (триггер), а не по клику – для шторки на телефоне это значит «не выше 30% экрана». */
+let autoOpened = false;
 
 const NOT = (w: Widget, n: E.No) => S.log('not', E.name(w), n);
 const metrika = (...a: unknown[]) => {
@@ -44,6 +46,7 @@ function run(cfg: Config, ui: Ui): () => void {
   api = {
     open(w) {
       openId = w.id;
+      autoOpened = false;
       S.acted(w);
       ui.open(w);
       metrika('params', { w: { [w.id]: 'open' } });
@@ -93,7 +96,7 @@ function run(cfg: Config, ui: Ui): () => void {
       if (as !== w.type) S.log('as', E.name(w), as);
       S.log('show', E.name(w), how, x);
       metrika('params', { w: { [w.id]: 'show' } });
-      if (ov) { openId = w.id; ui.open(w); } else ui.show(w.id, as);
+      if (ov) { openId = w.id; autoOpened = true; ui.open(w); } else ui.show(w.id, as);
     }
   };
   const fire = (w: Widget, how: string, x?: unknown, again = true) => {
@@ -170,7 +173,7 @@ export default function Widgets({ src = '/widgets.json', config }: { src?: strin
         const w = cfg.widgets.find((x) => x.id === id)!;
         return as === 'bar' ? <Bar key={id} w={w} phone={phone} /> : as === 'contacts' ? <Contacts key={id} w={w} phone={phone} /> : <Tab key={id} w={w} phone={phone} />;
       })}
-      {dlg && D && <D.f key={dlg.id} w={dlg} cfg={cfg} phone={phone} api={api} />}
+      {dlg && D && <D.f key={dlg.id} w={dlg} cfg={cfg} phone={phone} api={api} auto={autoOpened} />}
     </div>
   );
 }
@@ -212,8 +215,8 @@ function Contacts({ w, phone }: { w: Widget; phone: boolean }) {
   if (phone) {
     return (
       <nav class="w-sticky" aria-label="Связаться" style={{ zIndex: E.LAYER.sticky }}>
-        {a('phone', 'tel:' + k.phone, 'Позвонить', 'w-btn')}
-        {a('telegram', k.write || k.tg, 'Написать', 'w-btn w-btn--alt')}
+        {k.phone && a('phone', 'tel:' + k.phone, 'Позвонить', 'w-btn')}
+        {(k.write || k.tg) && a('telegram', k.write || k.tg, 'Написать', 'w-btn w-btn--alt')}
       </nav>
     );
   }

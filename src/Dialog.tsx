@@ -13,7 +13,7 @@ type P = { w: Widget; cfg: Config; api: Api };
 const FOCUS = 'a[href],button:not([disabled]),input,select,textarea';
 
 /** Окно или шторка: Esc, тап мимо, крестик и «назад» закрывают; фокус не уходит из окна. */
-export default function Dialog({ w, cfg, phone, api }: P & { phone: boolean }) {
+export default function Dialog({ w, cfg, phone, api, auto = false }: P & { phone: boolean; auto?: boolean }) {
   const ref = useRef<HTMLDivElement>(null);
   const close = (how: string) => api.close(w, how);
   useEffect(() => {
@@ -40,7 +40,7 @@ export default function Dialog({ w, cfg, phone, api }: P & { phone: boolean }) {
   }, []);
   const side = phone ? 'sheet' : ['tab', 'sheet'].includes(w.type) ? 'side' : 'center';
   return (
-    <div class={`w-dlg w-dlg--${side}`} style={{ zIndex: E.LAYER.overlay }}>
+    <div class={`w-dlg w-dlg--${side}${auto ? ' is-auto' : ''}`} style={{ zIndex: E.LAYER.overlay }}>
       <div class="w-dlg__bg" onClick={() => close('bg')} />
       <div class="w-dlg__p" ref={ref} role="dialog" aria-modal="true" aria-labelledby={'w-t-' + w.id}>
         <button type="button" class="w-x" aria-label="Закрыть" onClick={() => close('x')}>×</button>
@@ -58,8 +58,10 @@ function Body({ w, cfg, api }: P) {
   const [step, setStep] = useState(0);
   const [ans, setAns] = useState<string[]>([]);
   const [done, setDone] = useState(false);
-  const h = (t: ComponentChildren) => <h2 class="w-h" id={'w-t-' + w.id}>{t}</h2>;
-  if (done) return <>{h(k.done || 'Заявка принята')}<p>{k.doneText || E.term(w, Date.now(), cfg.tz ?? 3)}</p></>;
+  // Сменился шаг – фокус на заголовок, чтобы клавиатура не выпала из окна на страницу.
+  useEffect(() => { document.getElementById('w-t-' + w.id)?.focus(); }, [step, done]);
+  const h = (t: ComponentChildren) => <h2 class="w-h" id={'w-t-' + w.id} tabIndex={-1}>{t}</h2>;
+  if (done) return <>{h(k.done || 'Заявка принята')}<p>{k.doneText || E.term(w, Date.now(), cfg.tz ?? 3)}</p>{cfg.endpoint === 'demo:' && <p class="w-demo">демо: заявка никуда не ушла</p>}</>;
   const back = (to: number) => <button type="button" class="w-back" onClick={() => setStep(to)}>← Назад</button>;
   if (qz && step < qz.length) {
     const s = qz[step];
@@ -118,6 +120,7 @@ function Form({ w, cfg, api, extra, done }: P & { extra: Record<string, string>;
   const [err, setErr] = useState('');
   const submit = async (e: Event) => {
     e.preventDefault();
+    if (!agree) return setErr('Отметьте согласие на обработку данных');
     if (fields.includes('phone') && (v.phone || '').replace(/\D/g, '').length !== 11) return setErr('Укажите телефон полностью');
     if (fields.includes('email') && !/^\S+@\S+\.\S+$/.test(v.email || '')) return setErr('Проверьте почту');
     setBusy(true);

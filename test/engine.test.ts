@@ -142,3 +142,9 @@ test('у каждой причины отказа есть строка для �
   assert.ok(codes.length >= 28);
   for (const c of codes) assert.ok(RULES[c], `нет текста для кода ${c}`);
 });
+
+test('сразу при входе (load) – только плашка и «Позвонить / Написать»; ярлычок и окно ждут 10 с', () => {
+  const early = ctx({ visitStart: T - 2e3 });
+  for (const type of ['bar', 'contacts']) assert.equal(allow(w({ id: type, type, trigger: { on: 'load' } }), early, mem()), null, type);
+  for (const type of ['tab', 'modal', 'sheet']) assert.equal(allow(w({ id: type, type, trigger: { on: 'load' } }), early, mem())?.code, 'early', type);
+});

@@ -152,6 +152,7 @@ let metrikaOk = false;
 export function metrika(id: number | undefined, ok: boolean) {
   metrikaId = id || 0;
   metrikaOk = ok;
+  if (!ok) queue.length = 0; // отказ от cookie – события не копим
   return flush();
 }
 /** Вернёт, сколько событий ждёт в очереди; -1 – Метрика на сайте не настроена. */

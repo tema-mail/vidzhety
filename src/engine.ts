@@ -79,6 +79,9 @@ export const sig = (w: Widget) => {
 };
 
 /** Проверка настройки: годится ли виджет вообще. */
+/** Типы, которым разрешено появиться сразу при входе (trigger load): не перекрывают страницу. */
+export const LOAD_OK = ['bar', 'contacts'];
+
 export function validate(w: Widget): No {
   if (!w || !w.id) return no('noid');
   if (!TYPES.includes(w.type)) return no('type', w.type);
@@ -144,7 +147,8 @@ export function allow(w: Widget, c: Ctx, m: Mem): No {
   if (ov && m.ov) return no(m.ov === w.id ? 'ovself' : 'ov');
   const per = f.perSession ?? (ov ? 1 : 0);
   if (per && (m.sess[w.id] || 0) >= per) return no('per', per);
-  if (on(w) !== 'load' && waitMs(c) > 0) return no('early', QUIET_SEC);
+  // Сразу при входе можно только постоянное и неперекрывающее: плашка-условие и «Позвонить / Написать». Остальное – после 10 с.
+  if (!(on(w) === 'load' && LOAD_OK.includes(w.type)) && waitMs(c) > 0) return no('early', QUIET_SEC);
   return null;
 }
 
