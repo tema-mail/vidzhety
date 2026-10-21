@@ -34,8 +34,9 @@ function run(cfg: Config, ui: Ui): () => void {
     off.push(() => clearTimeout(t));
   };
   const now = () => ({ ...c, now: Date.now() });
-  const consentEv = cfg.consent?.event || 'gm-consent';
-  S.metrika(cfg.metrika, !!S.readConsent(cfg)?.yandex);
+  const consentEv = (cfg.consent || {}).event || 'gm-consent';
+  const metrikaId = S.noBanner(cfg) ? 0 : cfg.metrika;
+  S.metrika(metrikaId, !!S.readConsent(cfg)?.yandex);
 
   const ok: Widget[] = [];
   for (const w of cfg.widgets || []) {
@@ -77,8 +78,8 @@ function run(cfg: Config, ui: Ui): () => void {
     S.log('lead', e.detail?.source || 'форма страницы');
     ok.forEach((w) => (w.group || 'lead') === 'lead' && E.isAuto(w) && ui.hide(w.id));
   });
-  on(window, consentEv, (e: CustomEvent) => {
-    if (!S.metrika(cfg.metrika, !!(e.detail?.yandex ?? S.readConsent(cfg)?.yandex))) S.log('flush');
+  if (metrikaId) on(window, consentEv, (e: CustomEvent) => {
+    if (!S.metrika(metrikaId, !!(e.detail?.yandex ?? S.readConsent(cfg)?.yandex))) S.log('flush');
   });
 
   // Сработавшие за один такт собираются вместе: из окон побеждает одно – с большим priority.

@@ -12,7 +12,8 @@ export interface Config {
   agreement?: string;
   marketingDoc?: string;
   metrika?: number;
-  consent?: { key?: string; event?: string };
+  /** Где сайт хранит выбор cookie. false – на странице нет окна cookie (прототип): виджеты не ждут выбора, Метрику не трогают. */
+  consent?: false | { key?: string; event?: string };
 }
 interface Land { page: string; utm: Record<string, string>; ref: string; search: boolean }
 
@@ -52,10 +53,13 @@ export function log(k: string, ...a: unknown[]) {
 /** Выбор по cookie сайта (gaz-mag: localStorage gm_consent = { v:1, yandex }). null – выбора ещё не было. */
 export function readConsent(cfg: Config): { yandex: boolean } | null {
   try {
-    const c = JSON.parse(localStorage.getItem(cfg.consent?.key || 'gm_consent') || 'null');
+    const c = JSON.parse(localStorage.getItem((cfg.consent || {}).key || 'gm_consent') || 'null');
     return c ? { yandex: !!c.yandex } : null;
   } catch { return null; }
 }
+
+/** Окна cookie на странице нет (consent:false) – ждать нечего, а Метрику модуль не включает. */
+export const noBanner = (cfg: Config) => cfg.consent === false;
 
 /** Собрать всё, что движок знает о визите. Вызывается один раз при запуске острова. */
 export function init(cfg: Config): Ctx {
@@ -111,7 +115,7 @@ export function init(cfg: Config): Ctx {
     returning,
     quiet: document.body.hasAttribute('data-w-quiet'),
     storage: !!(ls && ss),
-    cookieChosen: !!readConsent(cfg),
+    cookieChosen: noBanner(cfg) || !!readConsent(cfg),
     control: !!(ls && ctrl.v),
     tz: cfg.tz ?? 3,
   };
