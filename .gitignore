@@ -1,0 +1,5 @@
+node_modules/
+dist/
+demo/vidzhety.js
+demo/vidzhety.css
+.DS_Store
