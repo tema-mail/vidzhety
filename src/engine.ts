@@ -4,9 +4,9 @@
 export type On = 'click' | 'load' | 'time' | 'scroll' | 'block' | 'exit' | 'pages';
 
 /** Типы, которые модуль умеет. Колеса, «кто-то купил», «сейчас смотрят N» нет и не будет – это решение. */
-export const TYPES = ['tab', 'bar', 'sheet', 'modal', 'quiz', 'callback', 'survey', 'inline', 'contacts'];
+export const TYPES = ['tab', 'bar', 'sheet', 'modal', 'quiz', 'callback', 'contacts'];
 /** Перекрывающие страницу – для них «одно окно за визит» и защита SEO на телефоне. */
-export const OVERLAYS = ['sheet', 'modal', 'quiz', 'callback', 'survey'];
+export const OVERLAYS = ['sheet', 'modal', 'quiz', 'callback'];
 const ONS: On[] = ['click', 'load', 'time', 'scroll', 'block', 'exit', 'pages'];
 
 export interface Widget {
@@ -55,9 +55,9 @@ export interface Mem {
   sess: Record<string, number>;
 }
 
-/** null – можно; иначе причина простыми словами и правило, которое сработало. */
-export type No = { why: string; rule: string } | null;
-const no = (why: string, rule: string): No => ({ why, rule });
+/** null – можно; иначе код причины и подробности. Тексты простым русским – в src/zhurnal.ts (только демо, в бой не идут). */
+export type No = { code: string; p: unknown[] } | null;
+const no = (code: string, ...p: unknown[]): No => ({ code, p });
 
 const DAY = 864e5;
 export const QUIET_SEC = 10;
@@ -80,18 +80,12 @@ export const sig = (w: Widget) => {
 
 /** Проверка настройки: годится ли виджет вообще. */
 export function validate(w: Widget): No {
-  if (!w || !w.id) return no('у виджета нет id', 'каждому виджету нужно имя');
-  if (!TYPES.includes(w.type)) {
-    return no(`тип «${w.type}» модулю неизвестен`, 'колесо, «кто-то купил» и другие типы вне списка модуль не показывает');
-  }
-  if (!ONS.includes(on(w))) return no(`триггер «${on(w)}» неизвестен`, 'триггеры: click, load, time, scroll, block, exit, pages');
-  if (on(w) === 'load' && isOverlay(w.type)) {
-    return no('окно при входе на страницу', 'перекрывающее окно не показывается сразу при входе');
-  }
-  if (w.content?.timer && !w.target?.dateTo) {
-    return no('таймер без даты окончания', 'таймер – только «до даты» из настроек, вечных таймеров нет');
-  }
-  if (w.enabled !== true) return no('выключен в настройках', 'новый виджет выключен, пока его явно не включат');
+  if (!w || !w.id) return no('noid');
+  if (!TYPES.includes(w.type)) return no('type', w.type);
+  if (!ONS.includes(on(w))) return no('trig', on(w));
+  if (on(w) === 'load' && isOverlay(w.type)) return no('load');
+  if (w.content?.timer && !w.target?.dateTo) return no('timer');
+  if (w.enabled !== true) return no('off');
   return null;
 }
 
@@ -115,22 +109,18 @@ const pathIn = (path: string, list: string[]) =>
 /** Подходит ли виджет этому визиту: устройство, страница, метка, новый/вернувшийся, даты, часы. */
 export function match(w: Widget, c: Ctx): No {
   const t = w.target || {};
-  if (on(w) === 'exit' && c.phone) return no('вы с телефона', 'на телефоне окно на уходе не работает');
-  if (t.device === 'phone' && c.phone === false) return no('вы с компьютера', 'виджет настроен только для телефона');
-  if (t.device === 'desktop' && c.phone) return no('вы с телефона', 'виджет настроен только для компьютера');
-  if (t.include && !pathIn(c.path, t.include)) return no(`страница ${c.path} не в списке`, 'показ только на выбранных страницах');
-  if (t.exclude && pathIn(c.path, t.exclude)) return no(`страница ${c.path} исключена`, 'на исключённых страницах не показывается');
-  if (t.utm && c.utm.utm_campaign !== t.utm) {
-    return no(`вы пришли не с рекламы «${t.utm}»`, 'виджет только для этой рекламной кампании');
-  }
-  if (t.visitor === 'new' && c.returning) return no('вы уже были на сайте', 'виджет только для новых посетителей');
-  if (t.visitor === 'back' && !c.returning) return no('вы на сайте впервые', 'виджет только для вернувшихся');
+  if (on(w) === 'exit' && c.phone) return no('exit');
+  if (t.device === 'phone' && !c.phone) return no('onlyphone');
+  if (t.device === 'desktop' && c.phone) return no('onlydesk');
+  if (t.include && !pathIn(c.path, t.include)) return no('page', c.path);
+  if (t.exclude && pathIn(c.path, t.exclude)) return no('excl', c.path);
+  if (t.utm && c.utm.utm_campaign !== t.utm) return no('utm', t.utm);
+  if (t.visitor === 'new' && c.returning) return no('new');
+  if (t.visitor === 'back' && !c.returning) return no('back');
   const day = ymd(c.now, c.tz);
-  if (t.dateFrom && day < t.dateFrom) return no(`условие начнётся ${t.dateFrom}`, 'до даты начала не показывается');
-  if (t.dateTo && day > t.dateTo) return no(`условие закончилось ${t.dateTo}`, 'после даты окончания не показывается');
-  if ((t.hours || t.days) && !inHours(c.now, c.tz, t.hours, t.days)) {
-    return no('сейчас нерабочее время', 'виджет показывается только в часы работы');
-  }
+  if (t.dateFrom && day < t.dateFrom) return no('before', t.dateFrom);
+  if (t.dateTo && day > t.dateTo) return no('after', t.dateTo);
+  if ((t.hours || t.days) && !inHours(c.now, c.tz, t.hours, t.days)) return no('hours');
   return null;
 }
 
@@ -139,34 +129,22 @@ export const waitMs = (c: Ctx) => Math.max(0, c.visitStart + QUIET_SEC * 1e3 - c
 
 /** Можно ли показать самопоявляющийся виджет прямо сейчас. По клику человека показывается всегда (после validate). */
 export function allow(w: Widget, c: Ctx, m: Mem): No {
-  if (c.quiet) return no('это тихая страница (data-w-quiet)', 'на «Спасибо», корзине, оформлении и юр-страницах виджеты сами не появляются');
-  if (!c.storage) return no('браузер не даёт память (приватный режим)', 'без памяти не соблюсти частоту – лучше промолчать');
-  if (!c.cookieChosen) return no('ещё не сделан выбор по cookie', 'пока открыто окно cookie, виджеты ждут');
-  if (c.control) {
-    return no('вы в контрольной группе', '10% посетителей 30 дней не видят самопоявляющихся виджетов – так честно меряем эффект');
-  }
-  if ((w.group || 'lead') === 'lead' && m.leadAt && c.now - m.leadAt < LEAD_DAYS * DAY) {
-    return no('вы уже оставили заявку', 'после заявки виджеты заявок молчат 90 дней');
-  }
+  if (c.quiet) return no('quiet');
+  if (!c.storage) return no('nostore');
+  if (!c.cookieChosen) return no('cookie');
+  if (c.control) return no('ctrl');
+  if ((w.group || 'lead') === 'lead' && m.leadAt && c.now - m.leadAt < LEAD_DAYS * DAY) return no('lead');
   const s = m.w[w.id] || {};
   const f = w.freq || {};
   const ov = isOverlay(w.type);
   const pause = f.closeDays ?? (w.type === 'bar' ? 365 : 7);
-  if (s.c && s.s === sig(w) && c.now - s.c < pause * DAY) {
-    return no('вы его уже закрыли', `после закрытия – пауза ${pause} дн. (или до смены текста)`);
-  }
+  if (s.c && s.s === sig(w) && c.now - s.c < pause * DAY) return no('paused', pause);
   const max = f.maxShows ?? (ov || w.type === 'tab' ? 3 : 0);
-  if (max && !s.a && (s.n || 0) >= max) {
-    return no(`показан ${s.n} раз без отклика`, `после ${max} показов без действия больше не показывается`);
-  }
-  if (ov && m.ov) {
-    return no(m.ov === w.id ? 'уже показано в этом визите' : 'в этом визите уже было окно', 'одно перекрывающее окно за визит');
-  }
+  if (max && !s.a && (s.n || 0) >= max) return no('max', s.n, max);
+  if (ov && m.ov) return no(m.ov === w.id ? 'ovself' : 'ov');
   const per = f.perSession ?? (ov ? 1 : 0);
-  if (per && (m.sess[w.id] || 0) >= per) return no('уже показан в этом визите', `не больше ${per} раз за визит`);
-  if (on(w) !== 'load' && waitMs(c) > 0) {
-    return no(`с начала визита прошло меньше ${QUIET_SEC} с`, 'первые 10 секунд – только по клику');
-  }
+  if (per && (m.sess[w.id] || 0) >= per) return no('per', per);
+  if (on(w) !== 'load' && waitMs(c) > 0) return no('early', QUIET_SEC);
   return null;
 }
 
