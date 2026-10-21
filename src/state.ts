@@ -170,7 +170,9 @@ function flush(): number {
 export async function send(cfg: Config, w: Widget, fields: Record<string, string>, marketing: boolean): Promise<boolean> {
   const body = {
     form: 'Виджет: ' + name(w), consent: true, marketing, source: 'w:' + w.id,
-    page: location.pathname, landing: land.page, utm: land.utm, referrer: land.ref, fields,
+    page: location.pathname, landing: land.page, utm: land.utm, referrer: land.ref,
+    // Page в полях – как у LeadForm gaz-mag: приёмник server/lead.mjs берёт страницу и категорию оттуда.
+    fields: { ...fields, Page: location.pathname },
   };
   if (cfg.endpoint === 'demo:') {
     log('send', body);
