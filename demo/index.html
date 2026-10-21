@@ -145,5 +145,11 @@
   <script src="vidzhety-zhurnal.js"></script>
   <script src="pult.js"></script>
   <script src="vidzhety.js"></script>
+<div class="pult demo-cookie" id="demo-cookie" hidden style="position:fixed;left:50%;bottom:16px;transform:translateX(-50%);z-index:2147483000;width:min(560px,calc(100% - 24px));background:#fff;border:1px solid #d9dde6;border-radius:14px;box-shadow:0 10px 40px rgba(0,0,0,.18);padding:16px 18px;display:grid;gap:10px;font:15px/1.5 system-ui,sans-serif">
+  <b>Окно cookie (как на настоящем сайте)</b>
+  <span>Пока посетитель не выбрал, виджеты молчат – это правило модуля. Выберите, и через 10 секунд появятся виджеты.</span>
+  <span style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" data-a="consent-yes" style="padding:10px 14px;border-radius:10px;border:0;background:#1e294e;color:#fff;font-weight:600;cursor:pointer">Принять все</button><button type="button" data-a="consent-min" style="padding:10px 14px;border-radius:10px;border:1px solid #1e294e;background:#fff;color:#1e294e;font-weight:600;cursor:pointer">Только необходимые</button></span>
+</div>
+<script>(function(){var b=document.getElementById('demo-cookie');var has=function(){try{return !!localStorage.getItem('gm_consent')}catch(e){return false}};if(!has())b.hidden=false;addEventListener('gm-consent',function(){b.hidden=true});})();</script>
 </body>
 </html>
