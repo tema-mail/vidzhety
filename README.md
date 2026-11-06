@@ -34,12 +34,12 @@
 
 ```json
 { "id": "svyaz", "enabled": true, "type": "contacts", "group": "contact", "trigger": { "on": "load" },
-  "content": { "layout": "side", "phone": "+79130000000", "phoneText": "8 (913) 000-00-00", "wa": "https://wa.me/…",
+  "content": { "layout": "side", "phone": "+79130000000", "phoneText": "8 (913) 000-00-00",
     "tg": "https://t.me/…", "max": "https://max.ru/…", "email": "…", "callback": "callback",
     "buttons": [ { "text": "Купить", "scroll": "#v-korzinu", "kind": "main" }, { "text": "Позвонить", "href": "tel:+79130000000" } ] } }
 ```
 
-- Компьютер: `layout: "side"` – вертикальная панель у правого края (телефон, WhatsApp, Telegram, MAX, почта – только заданные,
+- Компьютер: `layout: "side"` – вертикальная панель у правого края (телефон, Telegram, MAX, почта – только заданные,
   подпись при наведении, «Перезвоните мне» при `callback`); ярлычок при ней уходит в правый нижний угол. Без `layout` – мультикнопка.
 - Телефон: `buttons` – `href` (ссылка), `open` (id виджета), `scroll` (якорь, прокрутка к элементу); `kind: "main"` – главная, шире.
   Без текста или цели кнопка не рисуется; без `buttons` – «Позвонить» (`phone`) и «Написать» (`write` или `tg`).

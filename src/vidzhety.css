@@ -41,7 +41,6 @@ body.vz-has-sticky { padding-bottom: 72px; }
   border-radius: 14px 0 0 14px; background: var(--w-bg); box-shadow: 0 6px 24px rgba(0, 0, 0, .16); }
 .vz-side > * { position: relative; display: grid; place-items: center; width: 48px; height: 48px; border: 0; border-radius: 10px 0 0 10px;
   background: var(--w-a); color: #fff; text-decoration: none; font-size: 12px; cursor: pointer; }
-.vz-side--whatsapp { background: var(--w-wa, #1fa855) !important; }
 .vz-side--telegram { background: var(--w-tg, #2a9fd8) !important; }
 .vz-side--max { background: var(--w-max, #5b3fd6) !important; }
 .vz-side span { position: absolute; right: 56px; top: 50%; transform: translateY(-50%); padding: 6px 10px; border-radius: 8px; background: var(--w-fg);

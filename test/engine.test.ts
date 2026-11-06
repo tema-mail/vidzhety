@@ -176,7 +176,7 @@ test('нижняя панель телефона: кнопки только из
 });
 
 test('боковая панель компьютера: только каналы из настроек', () => {
-  assert.deepEqual(side({ wa: 'https://wa.me/79134584567', email: 'a@b.ru' }).map((x) => x[0]), ['whatsapp', 'mail']);
+  assert.deepEqual(side({ tg: 'https://t.me/x', email: 'a@b.ru' }).map((x) => x[0]), ['telegram', 'mail']);
   assert.deepEqual(side({ phone: '+79134584567', phoneText: '8 (913) 458-45-67' })[0], ['phone', 'tel:+79134584567', '8 (913) 458-45-67']);
   assert.deepEqual(side({}), []);
 });

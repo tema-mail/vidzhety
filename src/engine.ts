@@ -199,7 +199,6 @@ export function buttons(k: Record<string, any>): Btn[] {
 export function side(k: Record<string, any>): [string, string, string][] {
   const all: [string, string | false, string][] = [
     ['phone', !!k.phone && 'tel:' + k.phone, k.phoneText || k.phone],
-    ['whatsapp', k.wa, 'WhatsApp'],
     ['telegram', k.tg, 'Telegram'],
     ['max', k.max, 'MAX'],
     ['mail', !!k.email && 'mailto:' + k.email, k.email],
